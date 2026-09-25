@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Practical guide to producing a video tutorial for a web application with free tools — the PLOCAN procedure for the AMRIT project.">
+<link rel="icon" type="image/png" href="amrit_logo.png">
+<title>How to produce a video tutorial for a web application</title>
+<style>
+  :root{
+    --navy:#0D2542; --navy2:#16365C; --blue:#1A578F; --teal:#2A9BB0; --teal-l:#45B8C5;
+    --coral:#E87A5C; --coral-l:#F0826A; --ink:#2B3440; --muted:#5A6B7B; --line:#CFE4E8;
+    --soft:#F4F9FA; --bg:#E7EBF1;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Segoe UI',Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);
+       line-height:1.65;margin:0;padding:28px 16px;font-size:16px;-webkit-font-smoothing:antialiased}
+  .page{max-width:960px;margin:0 auto;background:#fff;padding:36px 56px 44px;
+        box-shadow:0 4px 28px rgba(13,37,66,.16);border-radius:14px}
+
+  /* progress bar + back to top */
+  #progress{position:fixed;top:0;left:0;height:4px;width:0;z-index:50;
+            background:linear-gradient(90deg,var(--teal-l),var(--coral));}
+  #toTop{position:fixed;right:22px;bottom:22px;width:46px;height:46px;border-radius:50%;border:none;
+         background:var(--navy);color:#fff;font-size:20px;cursor:pointer;z-index:40;
+         box-shadow:0 4px 14px rgba(13,37,66,.35);opacity:0;pointer-events:none;
+         transform:translateY(10px);transition:all .25s}
+  #toTop.show{opacity:1;pointer-events:auto;transform:none}
+  #toTop:hover{background:var(--coral)}
+
+  /* ===== Header ===== */
+  .header{position:relative;overflow:hidden;background:var(--navy);color:#fff;
+          padding:30px 40px 48px;border-radius:14px;margin-bottom:28px}
+  .header .bg{position:absolute;left:0;right:0;bottom:0;height:300px;
+              background:url('Waves1.png') center bottom / cover no-repeat;opacity:.8;mix-blend-mode:screen;pointer-events:none;
+              -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 35%);mask-image:linear-gradient(180deg,transparent 0%,#000 35%)}
+  .header .shade{position:absolute;inset:0;pointer-events:none;
+              background:linear-gradient(90deg,rgba(13,37,66,.7) 0%,rgba(13,37,66,.32) 40%,rgba(13,37,66,0) 65%)}
+  .header .inner{position:relative;z-index:2}
+  .header .logos{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:30px}
+  .header .logo{display:block;height:128px;max-width:70%;object-fit:contain;object-position:left center;mix-blend-mode:screen}
+  .header .eu-logo{height:60px;width:auto;flex-shrink:0}
+  .header .kicker{text-transform:uppercase;letter-spacing:2.5px;font-size:12px;color:#F5A18C;font-weight:700;margin:0 0 12px}
+  .header h1{color:#fff;font-size:30px;margin:0 0 14px;line-height:1.25;text-shadow:0 2px 10px rgba(0,0,0,.45)}
+  .header .sub{margin:0;font-size:17px;color:#DCE8F5;max-width:620px;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+
+  /* ===== TOC (stays in place) ===== */
+  .toc{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:20px 28px;margin:0 0 10px}
+  .toc h2{margin:0 0 12px;font-size:20px;border-bottom:2px solid var(--line)}
+  .toc ol{list-style:none;margin:0;padding:0;columns:2;column-gap:32px}
+  .toc li{margin:0;break-inside:avoid}
+  .toc a{display:flex;align-items:center;gap:10px;padding:5px 8px;border-radius:8px;color:#17303F;text-decoration:none;font-size:14.5px}
+  .toc a:hover{background:#fff;color:var(--coral)}
+  .toc .tocnum{flex:0 0 24px;height:24px;border-radius:50%;background:#fff;border:1.5px solid var(--coral);
+               color:var(--coral);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .toc a:hover .tocnum{background:var(--coral);color:#fff}
+
+  /* ===== Links ===== */
+  a.lnk{color:#1D6F9F;text-decoration:none;border-bottom:1px solid rgba(29,111,159,.3)}
+  a.lnk:hover{color:var(--coral);border-bottom-color:var(--coral)}
+
+  /* ===== Headings ===== */
+  h2{color:var(--blue);font-size:21px;border-bottom:3px solid var(--teal-l);padding-bottom:6px;margin:42px 0 16px}
+  h3{color:var(--teal);font-size:16px;margin:26px 0 8px}
+  p{margin:10px 0}
+  #tip5{scroll-margin-top:16px}
+  h2.sect{position:relative;overflow:hidden;margin:52px 0 20px;padding:14px 20px;font-size:21px;color:var(--blue);
+          border-bottom:3px solid var(--teal-l);border-radius:12px 12px 0 0;scroll-margin-top:16px;
+          display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  h2.sect .bg{position:absolute;inset:0;background:url('Waves2.png') right center / cover no-repeat;opacity:.6;
+              -webkit-mask-image:linear-gradient(90deg,transparent 0%,transparent 30%,#000 75%);
+                      mask-image:linear-gradient(90deg,transparent 0%,transparent 30%,#000 75%)}
+  h2.sect .badge{position:relative;z-index:3;flex:0 0 38px;height:38px;border-radius:50%;background:var(--coral);color:#fff;
+                 display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;
+                 box-shadow:0 3px 8px rgba(232,122,92,.35)}
+  h2.sect .badge.alt{background:var(--navy)}
+  h2.sect .txt{position:relative;z-index:3}
+  h2.sect .tools{position:relative;z-index:3;margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  h2.sect .tool{font-size:11.5px;font-weight:600;letter-spacing:.3px;background:#fff;color:var(--navy);
+                border:1px solid var(--line);padding:3px 10px;border-radius:14px;box-shadow:0 1px 3px rgba(13,37,66,.08)}
+
+  /* comfortable reading width for running text */
+  .page > p, .page > ul, .page > ol{max-width:46rem}
+
+  /* ===== Tables ===== */
+  .table-wrap{overflow-x:auto;margin:16px 0;border-radius:10px;border:1px solid var(--line)}
+  table.data{width:100%;border-collapse:collapse;font-size:14.5px}
+  table.data th{background:var(--navy);color:#fff;padding:10px 14px;text-align:left;font-weight:600}
+  table.data td{border-top:1px solid var(--line);padding:10px 14px;vertical-align:middle}
+  table.data tr:nth-child(even) td{background:var(--soft)}
+  .tname{display:flex;align-items:center;gap:10px;font-weight:600;white-space:nowrap}
+  .tdot{flex:0 0 28px;height:28px;border-radius:8px;color:#fff;font-size:13px;font-weight:700;
+        display:flex;align-items:center;justify-content:center}
+
+  /* ===== Boxes ===== */
+  .warn{background:#FFF8E6;border:1px solid #F3D27A;border-left:6px solid #E0A100;border-radius:10px;padding:16px 20px;margin:20px 0;max-width:none}
+  .warn .tag{display:inline-block;color:#fff;background:#D08F00;font-size:11px;font-weight:700;letter-spacing:1.4px;padding:3px 11px;border-radius:12px;margin-bottom:6px}
+  .warn > :last-child{margin-bottom:0}
+  .tip,.example{border-radius:10px;padding:16px 20px;margin:18px 0}
+  .tip{background:#FFF4F0;border-left:5px solid var(--coral-l)}
+  .example{background:#EAF7F9;border-left:5px solid var(--teal-l)}
+  .tip .tag,.example .tag{display:inline-block;color:#fff;font-size:11px;font-weight:700;letter-spacing:1.4px;
+       padding:3px 11px;border-radius:12px;margin-bottom:6px}
+  .tip .tag{background:var(--coral-l)} .example .tag{background:#3AA9B8}
+  .tip > :last-child,.example > :last-child{margin-bottom:0}
+  .quote{font-style:italic;color:#17303F;background:#fff;border:1px solid #BFE0E6;border-radius:8px;padding:12px 16px;margin:10px 0}
+
+  .tips-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  .tips-grid .tip{margin:0}
+  .tips-grid .tip.wide{grid-column:1 / -1}
+
+  /* ===== Figures ===== */
+  figure.img{margin:24px 0 22px;text-align:center}
+  figure.img img{max-width:100%;border-radius:10px;border:1px solid var(--line);
+                 box-shadow:0 2px 12px rgba(13,37,66,.10);cursor:zoom-in;transition:box-shadow .2s, transform .2s}
+  figure.img img:hover{box-shadow:0 6px 22px rgba(13,37,66,.22);transform:translateY(-2px)}
+  figure.img figcaption{font-size:14px;color:var(--muted);margin-top:10px}
+  figure.img figcaption b{color:var(--navy)}
+  .zoomhint{display:inline-block;font-size:12px;color:var(--teal);margin-left:6px;white-space:nowrap}
+  figure.img.schema img{max-width:min(100%,620px)}
+  .fig-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  .fig-row figure.img{margin:24px 0 22px}
+
+  /* lightbox */
+  #lb{position:fixed;inset:0;background:rgba(8,20,36,.92);display:none;align-items:center;justify-content:center;
+      flex-direction:column;z-index:100;padding:24px;cursor:zoom-out}
+  #lb.open{display:flex}
+  #lb img{max-width:96vw;max-height:86vh;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+  #lb .cap{color:#DCE8F5;font-size:14px;margin-top:12px;text-align:center;max-width:900px}
+  #lb .x{position:absolute;top:14px;right:20px;color:#fff;font-size:34px;line-height:1;background:none;border:none;cursor:pointer}
+
+  /* ===== Lists, code, keys, menus ===== */
+  ul,ol{margin:10px 0;padding-left:26px}
+  li{margin:6px 0}
+  code{font-family:Consolas,'Courier New',monospace;background:#EAF7F9;color:#16505A;padding:1px 6px;border-radius:4px;font-size:13.5px}
+  kbd{font-family:'Segoe UI',Calibri,Arial,sans-serif;font-size:12.5px;font-weight:600;color:var(--navy);background:#fff;
+      border:1px solid #B8C6D4;border-bottom-width:3px;border-radius:6px;padding:1px 7px;white-space:nowrap}
+  .menu{display:inline-flex;flex-wrap:wrap;align-items:center;gap:2px;font-size:13.5px;vertical-align:baseline}
+  .menu span{background:#EEF3F8;color:var(--navy);border-radius:5px;padding:1px 8px;font-weight:600;white-space:nowrap}
+  .menu span + span::before{content:'›';color:var(--coral);font-weight:700;margin:0 6px 0 -4px;padding-right:2px}
+  .menu span + span{position:relative}
+
+  ul.check{list-style:none;padding:0;margin:14px 0;max-width:46rem}
+  .check li{margin:6px 0}
+  .check label{display:flex;gap:12px;align-items:flex-start;padding:9px 14px;border:1px solid var(--line);
+               border-radius:8px;background:#fff;cursor:pointer;transition:background .15s}
+  .check label:hover{background:var(--soft)}
+  .check input{margin-top:5px;width:17px;height:17px;accent-color:var(--teal);flex-shrink:0}
+  .check input:checked + span{color:var(--muted);text-decoration:line-through}
+
+  /* ===== Footer ===== */
+  .footer{position:relative;overflow:hidden;margin-top:48px;background:var(--navy);color:#C7D6E8;
+          border-radius:12px;padding:22px 18px 64px;font-size:13px;text-align:center}
+  .footer .bg{position:absolute;left:0;right:0;bottom:0;height:100px;
+              background:url('Waves1.png') center bottom / cover no-repeat;opacity:.75;mix-blend-mode:screen;pointer-events:none;
+              -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 55%);mask-image:linear-gradient(180deg,transparent 0%,#000 55%)}
+  .footer .eu{color:#EAF2FA;font-weight:600}
+  .footer .inner{position:relative;z-index:2}
+
+  /* ===== Responsive ===== */
+  @media (max-width:760px){
+    body{padding:0;font-size:15.5px}
+    .page{padding:16px 16px 28px;border-radius:0;box-shadow:none}
+    .header{padding:20px 20px 48px;border-radius:12px}
+    .header .logo{height:83px} .header .eu-logo{height:42px}
+    .header .logos{margin-bottom:22px}
+    .header h1{font-size:25px}
+    .header .sub{font-size:15px}
+    .toc{padding:16px}
+    .toc ol{columns:1}
+    h2.sect{font-size:18px;padding:12px 14px;gap:10px}
+    h2.sect .badge{flex-basis:32px;height:32px;font-size:15px}
+    h2.sect .tools{margin-left:0;width:100%}
+    .tips-grid,.fig-row{grid-template-columns:1fr}
+    #toTop{right:14px;bottom:14px}
+  }
+
+  @media print{
+    body{background:#fff;padding:0} .page{box-shadow:none;max-width:100%;padding:10mm}
+    #progress,#toTop,#lb,.zoomhint{display:none!important}
+    figure.img,.tip,.example,.warn,table.data,.check li{break-inside:avoid}
+    h2{break-after:avoid}
+    .header,.footer,h2.sect .badge,table.data th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="header">
+  <div class="bg"></div>
+  <div class="shade"></div>
+  <div class="inner">
+    <div class="logos">
+      <img class="logo" src="amrit_logo.png" alt="AMRIT · Advance Marine Research Infrastructures Together">
+      <img class="eu-logo" src="UE.png" alt="Funded by the European Union">
+    </div>
+    <div class="kicker">Practical guide · Free tools</div>
+    <h1>How to produce a video tutorial for a web application</h1>
+    <p class="sub">From script to video. The <strong>PLOCAN</strong> procedure</p>
+  </div>
+</div>
+
+<nav class="toc" aria-label="Table of contents">
+  <h2>Table of contents</h2>
+  <ol>
+    <li><a href="#flujo"><span class="tocnum">▷</span>General workflow overview</a></li>
+    <li><a href="#s0"><span class="tocnum">◆</span>Before you start: tools and preparation</a></li>
+    <li><a href="#sA"><span class="tocnum">A</span>The script</a></li>
+    <li><a href="#sB"><span class="tocnum">B</span>Screen recording</a></li>
+    <li><a href="#sC"><span class="tocnum">C</span>Video editing</a></li>
+    <li><a href="#sD"><span class="tocnum">D</span>The narration</a></li>
+    <li><a href="#sE"><span class="tocnum">E</span>Generating the final voice-over audio</a></li>
+    <li><a href="#sF"><span class="tocnum">F</span>Inserting the audio tracks in Shotcut</a></li>
+    <li><a href="#sG"><span class="tocnum">G</span>Editing the audio clips with Audacity</a></li>
+    <li><a href="#sH"><span class="tocnum">H</span>Background music</a></li>
+    <li><a href="#sI"><span class="tocnum">I</span>The video intro and closing sequence</a></li>
+    <li><a href="#sJ"><span class="tocnum">J</span>Export and final review</a></li>
+    <li><a href="#tips"><span class="tocnum">★</span>Editing tips and tricks</a></li>
+  </ol>
+</nav>
+
+<h2 id="flujo" class="sect"><span class="bg"></span><span class="badge alt">▷</span><span class="txt">General workflow overview</span></h2>
+
+<p>The following diagram summarises the stages of the process and the tools used at each one. It reflects the workflow followed by <strong>PLOCAN</strong> for this tutorial: this is how the work was carried out here, but it is by no means the only possible approach — many other combinations of tools or orderings of the stages can lead to an equally good result.</p>
+
+<figure class="img schema">
+  <img src="Schema1.webp" alt="General overview of the video tutorial production process">
+  <figcaption><b>Figure 0.</b> General overview of the process: sections and tools used in each phase.<span class="zoomhint">🔍 click to enlarge</span></figcaption>
+</figure>
+
+<h2 id="s0" class="sect"><span class="bg"></span><span class="badge alt">◆</span><span class="txt">Before you start: tools and preparation</span></h2>
+
+<p>Only free tools are needed to follow this guide:</p>
+
+<div class="table-wrap"><table class="data">
+  <tr><th>Tool</th><th>Purpose</th><th>Where to get it</th></tr>
+  <tr><td><span class="tname"><span class="tdot" style="background:#107C10">X</span>Xbox Game Bar</span></td><td>Screen recording</td><td>Included in Windows 11 (<kbd>Win</kbd> + <kbd>G</kbd>)</td></tr>
+  <tr><td><span class="tname"><span class="tdot" style="background:#1E73BE">S</span>Shotcut</span></td><td>Video editing</td><td><a class="lnk" href="https://shotcut.org" target="_blank" rel="noopener">shotcut.org ↗</a></td></tr>
+  <tr><td><span class="tname"><span class="tdot" style="background:#7B4FD6">AI</span>AI Dubbing</span></td><td>Voice-over generation</td><td><a class="lnk" href="https://aidubbing.io/text-to-speech" target="_blank" rel="noopener">aidubbing.io ↗</a></td></tr>
+  <tr><td><span class="tname"><span class="tdot" style="background:#E0662B">A</span>Audacity</span></td><td>Audio clip editing (splitting, inserting pauses…)</td><td><a class="lnk" href="https://www.audacityteam.org" target="_blank" rel="noopener">audacityteam.org ↗</a></td></tr>
+  <tr><td><span class="tname"><span class="tdot" style="background:#2EAA5B">P</span>Pixabay (lnplusmusic)</span></td><td>Royalty-free background music</td><td><a class="lnk" href="https://pixabay.com/users/lnplusmusic-47631836/" target="_blank" rel="noopener">pixabay.com ↗</a></td></tr>
+  <tr><td><span class="tname"><span class="tdot" style="background:#4285F4">G</span>Google Flow</span></td><td>Generation of the video intro and closing sequence (AI)</td><td><a class="lnk" href="https://flow.google" target="_blank" rel="noopener">flow.google ↗</a></td></tr>
+</table></div>
+
+<p>Preparing the environment before recording:</p>
+<ul>
+  <li><strong>Prepare the application.</strong> Build the code if necessary and browse through the pages so that they are loaded in advance and delays are avoided.</li>
+  <li>Close unnecessary tabs and programs.</li>
+  <li>Turn off Windows notifications (Do Not Disturb mode).</li>
+  <li>If the application text does not display at the right size in the video, you can increase or decrease the browser zoom (<kbd>Ctrl</kbd> + <kbd>+</kbd> / <kbd>Ctrl</kbd> + <kbd>−</kbd>).</li>
+</ul>
+
+<h2 id="sA" class="sect"><span class="bg"></span><span class="badge">A</span><span class="txt">The script</span></h2>
+
+<p><strong>A1.</strong> A first script is drawn up that sets out, step by step, the features to be shown in the video.</p>
+
+<p><strong>A2.</strong> Next to each point of the script above, the actions to be performed on screen are described in order to demonstrate each of the features.</p>
+
+<p><strong>A3.</strong> The narration texts are added. This text is provisional, but it is useful to have it from this stage onwards in order to match the length of the on-screen actions with the length of the voice-over for each section.</p>
+
+<div class="example">
+  <span class="tag">ILLUSTRATIVE EXAMPLE OF A SCRIPT POINT</span>
+  <p><strong>Script point:</strong> [SECTION 4 – Show a general overview of the menu] (Duration: ~30 s)</p>
+  <p><strong>Action:</strong></p>
+  <ul>
+    <li>Show the opening icon.</li>
+    <li>Open the menu and quickly go through the 5 sections (without going into detail yet).</li>
+    <li>Point out that the "Operational Layer" is the main one and is active by default.</li>
+    <li>Close the menu with the close button.</li>
+  </ul>
+  <p><strong>Voice-over:</strong> "This icon opens the menu. Here we have five sections: Projection, Layers, Custom Layers, Legend and Base Map..."</p>
+</div>
+
+<h2 id="sB" class="sect"><span class="bg"></span><span class="badge">B</span><span class="txt">Screen recording</span><span class="tools"><span class="tool">Xbox Game Bar</span></span></h2>
+
+<p>The recording was made with a native, completely free tool that already comes built into Windows 11: the <strong>Xbox Game Bar</strong>. Although its name is aimed at gamers, it is an excellent, very lightweight screen recorder for capturing any program or tutorial. Best of all, you do not have to install anything at all: simply press <kbd>Win</kbd> + <kbd>G</kbd> to open the menu and click the record button (the direct shortcut <kbd>Win</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd> starts and stops recording without opening the menu). It is fast, free and comes built into the system.</p>
+
+<p><strong>Video only, no audio.</strong> We configured the recording to capture video only, with no audio. The advantage of this decision is that the narration is dubbed on afterwards: the audio can be re-recorded as many times as needed without touching the video.</p>
+
+<p>Important considerations:</p>
+<ul>
+  <li><strong>It records windows.</strong> This tool records windows, not the entire desktop, so you must select the browser or the window where the application you want to record is running.</li>
+  <li><strong>A clean screen.</strong> If you are recording the browser, maximise its window so that it fills the whole screen and press <kbd>F11</kbd> so that the top and bottom bars and the menus do not appear.</li>
+  <li><strong>Quality.</strong> The recording settings (frames per second, quality) are found in <span class="menu"><span>Windows Settings</span><span>Gaming</span><span>Captures</span></span>. 30&nbsp;fps is usually enough.</li>
+  <li>The files are saved automatically to the <code>Videos\Captures</code> folder. Copy them to the project folder and rename them in an organised way (e.g. <code>01_login.mp4</code>, <code>02_form.mp4</code>…); this will make the editing stage much easier.</li>
+</ul>
+
+<div class="warn">
+  <span class="tag">⚠ CRITICAL · 16:9 ASPECT RATIO</span>
+  <p>Videos for playback on computers are normally produced in <strong>16:9</strong> format (e.g. 1920×1080), so the recording must have that aspect ratio. <strong>Getting this wrong at this stage would affect all the later work</strong>, and it cannot be fixed properly during editing.</p>
+  <p>If your monitor is not 16:9 (for example, a 16:10 laptop screen), there are two solutions:</p>
+  <ul>
+    <li><strong>Switch the display</strong> to a 16:9 resolution (preferably 1920×1080; otherwise 1600×900) while recording.</li>
+    <li><strong>Give the browser window a 16:9 size</strong> (preferably 1920×1080; otherwise 1600×900) instead of using full screen.</li>
+  </ul>
+  <p><strong>If you apply either of these changes, testing becomes essential:</strong> make a short test recording, check its resolution and import it into Shotcut <em>before</em> starting the final recording. Step-by-step instructions are in <a class="lnk" href="#tip5">Tip&nbsp;5</a>.</p>
+</div>
+
+<div class="tip">
+  <span class="tag">💡 TIP</span>
+  <p><strong>Record in parts.</strong> It usually gives better results to record the action in parts; to do so, note the exact image where each part ends, so that the next part starts on the same screen with the mouse in the same position. It is also useful to wait one or two seconds at the end of each take, without moving anything, to leave room for manoeuvre when cutting during editing.</p>
+</div>
+
+<h2 id="sC" class="sect"><span class="bg"></span><span class="badge">C</span><span class="txt">Video editing</span><span class="tools"><span class="tool">Shotcut</span></span></h2>
+
+<p>For editing we used the free tool <strong>Shotcut</strong> (<a class="lnk" href="https://shotcut.org" target="_blank" rel="noopener">https://shotcut.org</a>), a cross-platform, open-source video editor that adds no watermarks to exports and requires no registration.</p>
+
+<figure class="img">
+  <img src="Shotcut1.png" alt="Shotcut interface">
+  <figcaption><b>Figure 1.</b> Shotcut interface with the editing project.<span class="zoomhint">🔍 click to enlarge</span></figcaption>
+</figure>
+
+<p>Basic editing procedure:</p>
+<ol>
+  <li><strong>Set the video mode of the project before you start:</strong> <span class="menu"><span>Settings</span><span>Video Mode</span><span>HD 1080p 30 fps</span></span>. Do this before adding the clips so that they all adapt to that format.</li>
+  <li><strong>Load the clips:</strong> drag the video files from the captures folder to the <em>Playlist</em> panel and from there to the <em>Timeline</em>, or directly onto the timeline.</li>
+  <li><strong>Arrange the clips</strong> on the timeline following the order of the script.</li>
+  <li><strong>Cut and trim:</strong> place the playhead at the cutting point and split the clip with the <kbd>S</kbd> key; delete the unwanted piece with <kbd>Del</kbd> and close the gap by dragging the adjacent clips together (or by enabling <em>Ripple</em> mode).</li>
+  <li><strong>Save the project</strong> (.mlt file) frequently while you work.</li>
+</ol>
+
+<p><em>Note:</em> these instructions may vary depending on the version of Shotcut used; that is why it is advisable — and very quick — to ask any AI assistant how to perform these actions in your specific version.</p>
+
+<p>Useful link: official tutorials at <a class="lnk" href="https://shotcut.org/tutorials/" target="_blank" rel="noopener">https://shotcut.org/tutorials/</a></p>
+
+<figure class="img">
+  <img src="Video1.png" alt="Shotcut timeline with the clips joined together">
+  <figcaption><b>Figure 2.</b> Shotcut timeline with the video clips joined together.<span class="zoomhint">🔍 click to enlarge</span></figcaption>
+</figure>
+
+<h2 id="sD" class="sect"><span class="bg"></span><span class="badge">D</span><span class="txt">The narration</span></h2>
+
+<p>With the video track assembled, this is the best moment to review the narration texts. We must check that they match what happens on screen and, by reading them aloud ourselves, make a first estimate of whether their length allows good synchronisation with the picture.</p>
+
+<p>From this first estimate we obtain blocks of text corresponding to the narration, and they must be <strong>short</strong>. Being short allows us to move them around and position them on the video so that audio and video are well synchronised; long paragraphs are much harder to synchronise.</p>
+
+<p>The resulting blocks are numbered (<code>narr_01</code>, <code>narr_02</code>…) and a note is made of which video fragment each one corresponds to.</p>
+
+<h2 id="sE" class="sect"><span class="bg"></span><span class="badge">E</span><span class="txt">Generating the final voice-over audio</span><span class="tools"><span class="tool">AI Dubbing</span></span></h2>
+
+<p>We used the free online tool <strong>AI Dubbing</strong> (<a class="lnk" href="https://aidubbing.io/text-to-speech" target="_blank" rel="noopener">https://aidubbing.io/text-to-speech</a>), which generates voice-overs from text with more than 400 voices. It can be used free of charge for limited amounts of text, or a small fee can be paid to generate more audio or use better voices.</p>
+
+<p>For each narration block defined in the previous section, its text is pasted into the generation box (maximum <strong>500 characters per block</strong>, which reinforces the need for short blocks) and the voice is selected. Specifically, for our tutorial we used the <em>Wise Lady</em> (English Female) voice, with no additional settings; the tool also offers an <em>Emotion</em> control to modify the tone of the voice-over if a more expressive result is desired.</p>
+
+<p>Once each voice-over has been generated, it must be downloaded and saved in the project folder with the name of the corresponding block (<code>narr_01.mp3</code>, <code>narr_02.mp3</code>…), since the tool's history only keeps the audio files for <strong>15 days</strong>; if a file is lost, it would have to be generated again.</p>
+
+<figure class="img">
+  <img src="AIDubbing.png" alt="AI Dubbing interface">
+  <figcaption><b>Figure 3.</b> AI Dubbing interface: text box with character counter, voice selection and audio history.<span class="zoomhint">🔍 click to enlarge</span></figcaption>
+</figure>
+
+<h2 id="sF" class="sect"><span class="bg"></span><span class="badge">F</span><span class="txt">Inserting the audio tracks in Shotcut</span><span class="tools"><span class="tool">Shotcut</span></span></h2>
+
+<p>With the video assembled and the audio files downloaded, the voice-overs are inserted into the Shotcut project. The recommended approach is to place <strong>each individual audio block on a different audio track</strong>: this way each block can be moved independently along the timeline until the best possible synchronisation with the picture is achieved, without affecting the rest.</p>
+
+<p>Procedure:</p>
+<ol>
+  <li><strong>Add an audio track:</strong> on the timeline, menu <span class="menu"><span>Timeline</span><span>Tracks</span><span>Add Audio Track</span></span> (or right-click on a track header). Repeat if several tracks are needed.</li>
+  <li><strong>Place each voice-over:</strong> drag each <code>narr_XX.mp3</code> file from File Explorer (or from the Playlist) onto the audio track, at the position where it should start playing.</li>
+  <li><strong>Synchronise:</strong> the audio clip displays its waveform, which helps to align the voice-over with what is happening on screen. <kbd>Ctrl</kbd> + <kbd>mouse wheel</kbd> zooms the timeline time scale for fine adjustments.</li>
+  <li><strong>Fades</strong> in and out can be created to avoid abrupt jumps between blocks.</li>
+  <li><strong>Volume:</strong> if a block sounds unbalanced compared with the others, adjust it with the gain/volume filter (see Tip&nbsp;3 in the "Editing tips and tricks" section).</li>
+</ol>
+
+<p>Useful link: official tutorials at <a class="lnk" href="https://shotcut.org/tutorials/" target="_blank" rel="noopener">https://shotcut.org/tutorials/</a></p>
+
+<figure class="img">
+  <img src="Audio1.png" alt="Audio tracks on the Shotcut timeline">
+  <figcaption><b>Figure 4.</b> Shotcut timeline with the audio tracks placed beneath the video (one voice-over per track).<span class="zoomhint">🔍 click to enlarge</span></figcaption>
+</figure>
+
+<h2 id="sG" class="sect"><span class="bg"></span><span class="badge">G</span><span class="txt">Editing the audio clips with Audacity (when necessary)</span><span class="tools"><span class="tool">Audacity</span></span></h2>
+
+<p>In some cases the generated voice-overs need touching up before being inserted into Shotcut: splitting an audio file into several blocks, inserting a space (a pause) in the middle of a voice-over, or joining two files together. For this we used <strong>Audacity</strong> (<a class="lnk" href="https://www.audacityteam.org" target="_blank" rel="noopener">https://www.audacityteam.org</a>), a free, open-source audio editor available for Windows, macOS and Linux.</p>
+
+<p>Typical use cases:</p>
+<ul>
+  <li><strong>Split an audio file into several files.</strong> Open the file by dragging it into the Audacity window; on the waveform, select the desired piece with the mouse; and export it with <span class="menu"><span>File</span><span>Export Audio</span></span> (choosing the option to export only the selection), naming it as a new block (<code>narr_XXa.mp3</code>, <code>narr_XXb.mp3</code>…). Repeat for each piece. This turns a block that is too long into several short blocks that can be synchronised independently.</li>
+  <li><strong>Insert a pause in the middle of a voice-over.</strong> Place the cursor (click on the waveform) at the point where the silence is wanted and use <span class="menu"><span>Generate</span><span>Silence</span></span>, specifying the desired duration.</li>
+  <li><strong>Remove an unwanted piece.</strong> Select it and press <kbd>Del</kbd>; the rest of the audio shifts and closes the gap automatically.</li>
+  <li><strong>Export the result</strong> as MP3 (Audacity includes the encoder; nothing additional needs to be installed) with the name of the corresponding block, overwriting the original if appropriate.</li>
+</ul>
+
+<figure class="img">
+  <img src="Audacity.png" alt="Editing audio files in Audacity">
+  <figcaption><b>Figure 5.</b> Editing audio files in Audacity.<span class="zoomhint">🔍 click to enlarge</span></figcaption>
+</figure>
+
+<p>These touch-ups tie in well with Tip&nbsp;1 in the "Editing tips and tricks" section: if an audio file is longer than its video, in addition to extending the video with its last frame, small pauses can be inserted in the voice-over to adjust the pacing.</p>
+
+<h2 id="sH" class="sect"><span class="bg"></span><span class="badge">H</span><span class="txt">Background music</span><span class="tools"><span class="tool">Pixabay</span><span class="tool">Shotcut</span></span></h2>
+
+<p>We added background music to the video. It is useful mainly in the <strong>pauses between voice-overs</strong> and at the <strong>opening and end of the video</strong>, where it fills the silences and gives a feeling of a professional finish.</p>
+
+<p>To avoid copyright issues, the music was taken from <strong>Pixabay</strong>, a platform offering royalty-free music that can be used freely. Specifically, we used a piece by the author <strong>lnplusmusic</strong> (<a class="lnk" href="https://pixabay.com/users/lnplusmusic-47631836/" target="_blank" rel="noopener">https://pixabay.com/users/lnplusmusic-47631836/</a>): the file <code>lnplusmusic-no-copyright-music-corporate-background-367221</code>, downloadable from their page.</p>
+
+<p>Recommendations when adding it:</p>
+<ul>
+  <li><strong>Its own track.</strong> Place the music on its own audio track in Shotcut, separate from the voice-overs, so that it can be adjusted without touching the narration.</li>
+  <li><strong>Very low volume.</strong> The music must sound clearly below the voice-over so as not to get in its way; adjust it with the gain/volume filter (see Tip&nbsp;3 in the "Editing tips and tricks" section).</li>
+  <li><strong>Fades.</strong> Apply a fade-in at the beginning and a fade-out at the end, and smooth the entrances and exits too if the music is cut in the middle of the piece.</li>
+  <li><strong>Duration.</strong> If the music is shorter than the video, the clip can be copied and repeated; if it is longer, cut the excess, trying to end on a complete musical phrase.</li>
+</ul>
+
+<figure class="img">
+  <img src="Music1.png" alt="Pixabay player showing the No Copyright Music piece by lnplusmusic">
+  <figcaption><b>Figure 6.</b> Pixabay player showing the "No Copyright Music" piece by lnplusmusic, used as background music.<span class="zoomhint">🔍 click to enlarge</span></figcaption>
+</figure>
+
+<h2 id="sI" class="sect"><span class="bg"></span><span class="badge">I</span><span class="txt">The video intro and closing sequence</span><span class="tools"><span class="tool">Google Flow</span><span class="tool">Shotcut</span></span></h2>
+
+<p>To give the tutorial a professional finish, an <strong>intro</strong> is added at the beginning and a <strong>closing sequence</strong> at the end — two very short videos — with the corporate identity of the <strong>AMRIT</strong> project, for which the tutorial has been produced.</p>
+
+<p><strong>Starting materials.</strong> The project provides corporate templates in PowerPoint (PPT) format with the official AMRIT logos and texts. Two slides from them were used: one as the <strong>opening slide</strong> (presentation of the video) and one as the <strong>closing slide</strong> (farewell). The first step is to export both slides as images: in PowerPoint, <span class="menu"><span>File</span><span>Save As</span><span>PNG</span></span> (saves the visible slide as an image file), or right-click on the slide &gt; <em>Save as Picture</em>. <em>(If PowerPoint does not allow exporting them, see Tip&nbsp;4.)</em></p>
+
+<p><strong>Procedure.</strong> The method takes advantage of the frame-export trick (Tip&nbsp;1 in the "Editing tips and tricks" section) together with an AI video generation tool:</p>
+<ol>
+  <li><strong>Obtain the linking frames.</strong> Export from Shotcut, with <span class="menu"><span>File</span><span>Export</span><span>Frame</span></span>, the <strong>first frame</strong> of the main video and the <strong>last</strong> one. The first frame of the video will be the <strong>end</strong> of the intro (the image the intro arrives at) and the last frame of the video will be the <strong>beginning</strong> of the closing sequence (the image it starts from).</li>
+  <li><strong>Generate the intro.</strong> Go to <strong>Google Flow</strong> (<a class="lnk" href="https://flow.google" target="_blank" rel="noopener">https://flow.google</a>), Google's tool for generating video with artificial intelligence (based on the Veo model). It is used free of charge with a Gmail account, with a limited number of generations; paid plans provide more. Inside Flow, use the <strong>Frames to Video</strong> mode, which takes a <strong>starting image</strong> and an <strong>ending image</strong> and generates a video that progresses from the first to the second. Load the AMRIT opening slide as the initial image and the first frame of the video as the final image, and in the <strong>prompt</strong> ask for a visually attractive transition between the two, indicating the desired duration and resolution among the available options.</li>
+  <li><strong>Generate the closing sequence.</strong> Same procedure, but in the reverse order: initial image = last frame of the video; final image = AMRIT closing slide.</li>
+  <li><strong>Review and regenerate.</strong> AI generation is not deterministic: if the result is not convincing, generate it again (adjusting the prompt if necessary) until a satisfactory result is obtained. Check that the duration and resolution of the generated clip match the rest of the video (16:9, 1920×1080).</li>
+  <li><strong>Insert into Shotcut.</strong> Place the intro video at the beginning of the timeline and the closing video at the end. For this it is advisable to use <strong>two new, independent video tracks</strong> (one for each video), so that they can be moved and adjusted without touching the main video. In these sections the background music (section&nbsp;H) can be turned up in volume — there is no voice-over — and can carry a fade-in or a fade-out, which also gives stylistic continuity between the AI-generated videos and the screen recording.</li>
+</ol>
+
+<div class="example">
+  <span class="tag">ILLUSTRATIVE EXAMPLE OF A PROMPT FOR THE INTRO (IN FLOW)</span>
+  <p class="quote">"Starting from the AMRIT title card, create a visually attractive intro animation that transitions smoothly into the application interface shown in the second image. Clean, corporate style, gentle camera motion. Duration: 8 seconds. Resolution: 1920×1080 (16:9)."</p>
+</div>
+
+<p><em>Note:</em> depending on the model chosen, the videos generated by Flow may include their own audio. Since our recording has no audio, it can be kept, attenuated with the Gain/Volume filter (Tip&nbsp;3 in the "Editing tips and tricks" section), or removed in Shotcut. Before generating, it is worth checking whether the model or the available options allow a video with no audio to be requested.</p>
+
+
+<div class="fig-row">
+<figure class="img">
+  <img src="Exports1.png" alt="Exported slides">
+  <figcaption><b>Figure 7.</b> Opening and closing slides of the AMRIT project, the starting point for the intro and closing sequences.<span class="zoomhint">🔍 click to enlarge</span></figcaption>
+</figure>
+<figure class="img">
+  <img src="Gflow1.png" alt="Google Flow">
+  <figcaption><b>Figure 8.</b> Generating the intro in Google Flow from the opening slide and the first frame of the video.<span class="zoomhint">🔍 click to enlarge</span></figcaption>
+</figure>
+</div>
+
+<h2 id="sJ" class="sect"><span class="bg"></span><span class="badge">J</span><span class="txt">Export and final review</span><span class="tools"><span class="tool">Shotcut</span></span></h2>
+
+<p>Once video, voice-over and music are synchronised, and the intro and closing sequences are in place, the final video is exported:</p>
+<ul>
+  <li>Format: <strong>MP4</strong>.</li>
+  <li>Resolution: <strong>1920×1080</strong> (16:9), consistent with the original recording.</li>
+</ul>
+
+<p>Before considering the job finished, a full viewing is recommended using this checklist:</p>
+<ul class="check">
+  <li><label><input type="checkbox"><span>The voice-over matches what happens on screen at all times.</span></label></li>
+  <li><label><input type="checkbox"><span>The cuts between clips are clean.</span></label></li>
+  <li><label><input type="checkbox"><span>The application text is easy to read.</span></label></li>
+  <li><label><input type="checkbox"><span>There are no long silences or overlapping audio.</span></label></li>
+  <li><label><input type="checkbox"><span>The background music does not drown out the narration.</span></label></li>
+  <li><label><input type="checkbox"><span>The intro and closing sequence match the look and feel of the rest of the video.</span></label></li>
+</ul>
+
+<p>Since the voice-over text is already written, generating <strong>subtitles</strong> (for example, as an .srt file) is quick and greatly improves the accessibility of the tutorial.</p>
+
+<div class="example">
+  <span class="tag">OPTIONAL · IF YOU WANT TO GO FURTHER</span>
+  <p>Subtitles can be embedded in the video itself during editing, uploaded to the publishing platform as a separate .srt file, or generated in other languages by translating the same voice-over script.</p>
+</div>
+
+<h2 id="tips" class="sect"><span class="bg"></span><span class="badge alt">★</span><span class="txt">Editing tips and tricks</span><span class="tools"><span class="tool">Shotcut</span></span></h2>
+
+<div class="tips-grid">
+<div class="tip wide">
+  <span class="tag">💡 TIP 1 · EXTEND A SECTION USING ITS LAST FRAME</span>
+  <p>Sometimes the voice-over of a section lasts longer than the available video: the section should last longer because its audio is longer, and we need to gain those extra seconds of video. There is no need to re-record anything; it can be solved in Shotcut as follows:</p>
+  <ol>
+    <li>Place the playhead on the <strong>last frame</strong> of the clip for that section.</li>
+    <li>Export that frame as an image: <span class="menu"><span>File</span><span>Export</span><span>Frame (Export Frame)</span></span>. A PNG is saved with the exact image of that moment.</li>
+    <li>Import that image and place it on the timeline immediately after the clip (it can go on the same video track or on a new one).</li>
+    <li>Extend the image clip by dragging its edge to the required duration, so that it covers the seconds the audio is still missing.</li>
+  </ol>
+  <p>The result is that the section "freezes" on its last image for as long as necessary. Since the still image matches the end of the video exactly, the cut goes unnoticed and synchronisation with the audio is solved.</p>
+  <p>This same frame-export trick is the basis of section&nbsp;I: the intro and closing sequences of the video are built from the first and last frames.</p>
+</div>
+
+<div class="tip wide">
+  <span class="tag">💡 TIP 2 · SPEED UP OR SLOW DOWN A VIDEO FRAGMENT</span>
+  <p>Shotcut allows <strong>effects (filters)</strong> to be added to the video, and one of them is the <strong>playback speed</strong>. With it we can — without overdoing it — speed up or slow down part of the video: for example, to compress a long wait or to make a fast movement easier to see.</p>
+  <ol>
+    <li><strong>Delimit the fragment first:</strong> place the playhead where the part whose speed we want to change begins and cut with the <kbd>S</kbd> key; repeat where it ends. This way the effect will apply only to that clip section and not to the whole clip.</li>
+    <li><strong>Apply the effect:</strong> select the clip section and, in the <em>Filters</em> panel, add the <strong>Speed</strong> filter.</li>
+    <li><strong>Adjust the factor:</strong> a value greater than 1 speeds up (e.g. 1.5) and less than 1 slows down (e.g. 0.5). The clip's duration on the timeline adjusts automatically.</li>
+  </ol>
+  <p><strong>Without overdoing it:</strong> use it sparingly, only where it adds clarity; a speed very different from normal is noticeable and can look artificial. If the fragment has its own sound, bear in mind that speed also alters the audio.</p>
+</div>
+
+<div class="tip">
+  <span class="tag">💡 TIP 3 · RAISE OR LOWER THE VOLUME OF AN AUDIO CLIP</span>
+  <p>Among Shotcut's effects there is also one to <strong>raise or lower the volume</strong> of an audio track or clip, in case the mix needs balancing:</p>
+  <ol>
+    <li>Select the audio clip (or the track) to which the change is to be applied.</li>
+    <li>In the <em>Filters</em> panel, add the <strong>Gain / Volume</strong> filter.</li>
+    <li>Adjust the level: negative values lower the volume and positive ones raise it.</li>
+  </ol>
+  <p>It is the same filter we used to keep the background music well below the voice-over (section&nbsp;H), and it also serves to compensate voice-over blocks that sound at different levels.</p>
+</div>
+
+<div class="tip">
+  <span class="tag">💡 TIP 4 · EXTRACT THE IMAGES FROM A PPT PRESENTATION</span>
+  <p>Sometimes PowerPoint does not allow the images of a presentation to be exported. In these cases, the file extension can be changed from <code>.pptx</code> to <code>.zip</code>, since .pptx files are in fact zip files. Opening the zip with any compressed-file manager will reveal all the multimedia content of the presentation, including the images.</p>
+</div>
+
+<div class="tip wide" id="tip5">
+  <span class="tag">💡 TIP 5 · GETTING A 16:9 RECORDING ON A NON-16:9 SCREEN</span>
+  <p>A reminder of the critical point in section&nbsp;B: the recording must be 16:9. If the monitor does not have that aspect ratio, use one of these options:</p>
+  <p><strong>Option 1 · Change the screen resolution (the simplest).</strong></p>
+  <ol>
+    <li>Open <span class="menu"><span>Settings</span><span>System</span><span>Display</span><span>Display resolution</span></span>.</li>
+    <li>Choose a 16:9 resolution from the list, preferably <strong>1920×1080</strong> (available on most 16:10 monitors of 1920×1200); otherwise 1600×900, 1366×768 or 1280×720.</li>
+    <li>Depending on the graphics card, the monitor may show black bars or a slightly stretched image; this does not affect the recording. The browser in full screen (<kbd>F11</kbd>) will now be 16:9 and the recording will be clean.</li>
+    <li>When you have finished recording, restore the original resolution.</li>
+  </ol>
+  <p><strong>Option 2 · Give the window a 16:9 size.</strong></p>
+  <ol>
+    <li>Resize the browser window to an exact 16:9 size: preferably <strong>1920×1080</strong>, which usually fits on a 1920×1200 monitor; otherwise 1600×900. Windows has no built-in way to type an exact size, so a free tool can help, such as the <em>FancyZones</em> utility of Microsoft PowerToys (define a zone of that size and snap the window to it).</li>
+    <li>Full screen (<kbd>F11</kbd>) cannot be used in this case, because it would take the monitor's aspect ratio. To hide the tabs and address bar, open the application as an app window: in Chrome or Edge, use the browser menu option to install the page or site as an app; it will open in its own window without browser bars.</li>
+  </ol>
+  <p><strong>About quality.</strong> With the project set to <em>HD 1080p</em> (section&nbsp;C), Shotcut scales a 1600×900 recording to 1920×1080 without distortion, since both are 16:9, but small text may look slightly less sharp. Record at 1920×1080 whenever possible.</p>
+  <p><strong>Testing is essential.</strong> If you use either of these options, do not start the final recording until you have checked the result. The exact resolution of the recorded file depends on the window size, the Windows display scaling (125%, 150%…) and the capture settings, so it can differ from what you expect (for example, a 1600×900 window at 125% scaling may be recorded at 2000×1125, which is still 16:9). Record a few seconds and:</p>
+  <ol>
+    <li>Right-click the video file &gt; <em>Properties</em> &gt; <em>Details</em> and check that the frame width and height have a 16:9 ratio (e.g. 1920×1080, 1600×900, 2000×1125).</li>
+    <li>Import the test clip into the Shotcut project and check that it fills the frame with no black bars and that the application text is easy to read.</li>
+  </ol>
+</div>
+</div>
+
+<div class="footer">
+  <div class="bg"></div>
+  <div class="inner">
+    <span class="eu">AMRIT Project · Advance Marine Research Infrastructures Together</span><br>
+    Funded by the European Union · Video tutorial production guide (PLOCAN)
+  </div>
+</div>
+
+</div>
+
+<div id="progress"></div>
+<button id="toTop" aria-label="Back to top" title="Back to top">↑</button>
+<div id="lb" role="dialog" aria-modal="true"><button class="x" aria-label="Close">×</button><img alt=""><div class="cap"></div></div>
+<script>
+(function(){
+  var bar=document.getElementById('progress'), top=document.getElementById('toTop');
+  function onScroll(){var h=document.documentElement, max=h.scrollHeight-h.clientHeight;
+    bar.style.width=(max>0?h.scrollTop/max*100:0)+'%'; top.classList.toggle('show',h.scrollTop>600);}
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  top.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+  var lb=document.getElementById('lb'), li=lb.querySelector('img'), lc=lb.querySelector('.cap');
+  document.querySelectorAll('figure.img img').forEach(function(im){
+    im.addEventListener('click',function(){
+      li.src=im.src; li.alt=im.alt;
+      var fc=im.closest('figure').querySelector('figcaption');
+      lc.innerHTML=fc?fc.innerHTML.replace(/<span class="zoomhint">.*?<\/span>/,''):'';
+      lb.classList.add('open');});
+  });
+  function close(){lb.classList.remove('open');}
+  lb.addEventListener('click',close);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')close();});
+})();
+</script>
+</body>
+</html>
